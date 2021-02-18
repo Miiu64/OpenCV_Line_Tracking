@@ -1,0 +1,28 @@
+import cv2
+import numpy as np
+
+cap = cv2.VideoCapture(1)
+while True:
+    ret, img = cap.read()
+    
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    blur = cv2.GaussianBlur(gray, (5, 5), 0)
+    canny = cv2.Canny(blur, 10, 70)
+    ret, mask = cv2.threshold(canny, 70, 255, cv2.THRESH_BINARY)
+
+   # print(lines)
+    cv2.imshow('Video feed 1', mask)
+    minLineLength = 10
+    maxLineGap = 100
+    lines = cv2.HoughLinesP(canny,1,np.pi/180,100,minLineLength,maxLineGap)
+    if lines is not None:
+        for unpackedline in lines:
+            for x1,y1,x2,y2 in unpackedline:
+                cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
+
+    cv2.imshow('Video feed 2', img)
+
+    if cv2.waitKey(1) == 13:
+        break
+cap.release()
+cv2.destroyAllWindows()

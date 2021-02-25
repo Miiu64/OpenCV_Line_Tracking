@@ -12,9 +12,9 @@ while True:
 
    # print(lines)
     cv2.imshow('Video feed 1', mask)
-    minLineLength = 10
-    maxLineGap = 100
-    lines = cv2.HoughLinesP(canny,1,np.pi/180,100,minLineLength,maxLineGap)
+    minLineLength = 1
+    maxLineGap = 10
+    lines = cv2.HoughLinesP(canny,1,np.pi/360,20,minLineLength,maxLineGap)
     if lines is not None:
         for unpackedline in lines:
             for x1,y1,x2,y2 in unpackedline:

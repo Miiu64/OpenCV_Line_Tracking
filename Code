@@ -5,22 +5,31 @@ cap = cv2.VideoCapture(1)
 while True:
     ret, img = cap.read()
     
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    
+    x_size = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    y_size = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    black = np.zeros((y_size, x_size, 3), np.uint8)
+    gray = cv2.inRange(cv2.cvtColor(
+        img, cv2.COLOR_BGR2HSV), (0, 128, 128), (255, 255, 255))
+   # gray = cv2.cvtColor(bruh, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5, 5), 0)
     canny = cv2.Canny(blur, 10, 70)
-    ret, mask = cv2.threshold(canny, 70, 255, cv2.THRESH_BINARY)
+    ret, mask = cv2.threshold(canny, 100, 255, cv2.THRESH_BINARY)
+    
+    
 
    # print(lines)
     cv2.imshow('Video feed 1', mask)
-    minLineLength = 1
+    minLineLength = 100
     maxLineGap = 10
-    lines = cv2.HoughLinesP(canny,1,np.pi/360,20,minLineLength,maxLineGap)
+    lines = cv2.HoughLinesP(canny,1,np.pi/180,40,minLineLength,maxLineGap)
     if lines is not None:
         for unpackedline in lines:
             for x1,y1,x2,y2 in unpackedline:
                 cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
 
     cv2.imshow('Video feed 2', img)
+    cv2.imshow('gray', gray)
 
     if cv2.waitKey(1) == 13:
         break

@@ -1,37 +1,111 @@
-import cv2
 import numpy as np
 
-cap = cv2.VideoCapture(1)
-while True:
-    ret, img = cap.read()
-    
-    
-    x_size = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    y_size = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    black = np.zeros((y_size, x_size, 3), np.uint8)
-    gray = cv2.inRange(cv2.cvtColor(
-        img, cv2.COLOR_BGR2HSV), (0, 128, 128), (255, 255, 255))
-   # gray = cv2.cvtColor(bruh, cv2.COLOR_BGR2GRAY)
-    blur = cv2.GaussianBlur(gray, (5, 5), 0)
-    canny = cv2.Canny(blur, 10, 70)
-    ret, mask = cv2.threshold(canny, 100, 255, cv2.THRESH_BINARY)
-    
-    
+import cv2
 
-   # print(lines)
-    cv2.imshow('Video feed 1', mask)
-    minLineLength = 100
-    maxLineGap = 10
-    lines = cv2.HoughLinesP(canny,1,np.pi/180,40,minLineLength,maxLineGap)
-    if lines is not None:
-        for unpackedline in lines:
-            for x1,y1,x2,y2 in unpackedline:
-                cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
+ 
 
-    cv2.imshow('Video feed 2', img)
-    cv2.imshow('gray', gray)
+video_capture = cv2.VideoCapture(1)
 
-    if cv2.waitKey(1) == 13:
+video_capture.set(3, 160)
+
+video_capture.set(4, 120)
+
+ 
+
+while(True):
+
+ 
+
+    # Capture the frames
+
+    ret, frame = video_capture.read()
+
+ 
+
+    # Crop the image
+
+    crop_img = frame[60:120, 0:160]
+
+ 
+
+    # Convert to grayscale
+
+    gray = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
+
+ 
+
+    # Gaussian blur
+
+    blur = cv2.GaussianBlur(gray,(5,5),0)
+
+ 
+
+    # Color thresholding
+
+    ret,thresh = cv2.threshold(blur,60,255,cv2.THRESH_BINARY_INV)
+
+ 
+
+    # Find the contours of the frame
+
+    contours,hierarchy = cv2.findContours(thresh.copy(), 1, cv2.CHAIN_APPROX_NONE)
+
+ 
+
+    # Find the biggest contour (if detected)
+
+    if len(contours) > 0:
+
+        c = max(contours, key=cv2.contourArea)
+
+        M = cv2.moments(c)
+
+ 
+
+        cx = int(M['m10']/M['m00'])
+
+        cy = int(M['m01']/M['m00'])
+
+ 
+
+        cv2.line(crop_img,(cx,0),(cx,720),(255,0,0),1)
+
+        cv2.line(crop_img,(0,cy),(1280,cy),(255,0,0),1)
+
+ 
+
+        cv2.drawContours(crop_img, contours, -1, (0,255,0), 1)
+
+ 
+
+        if cx >= 120:
+
+            print ("Turn Right")
+
+ 
+
+        if cx < 120 and cx > 50:
+
+            print ("On Track!")
+
+ 
+
+        if cx <= 50:
+
+            print ("Turn Left")
+
+ 
+
+    else:
+
+        print ("I don't see the line")
+
+ 
+
+    #Display the resulting frame
+
+    cv2.imshow('frame',crop_img)
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+
         break
-cap.release()
-cv2.destroyAllWindows()
